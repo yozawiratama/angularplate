@@ -3,7 +3,7 @@ angular.module('service.home', [])
         var factory = {};
 
         factory.Intro = function () {
-            return 'Hello I\'m Mistral';
+            return 'Hello I\'m Angularplate';
         };
 
         return factory;

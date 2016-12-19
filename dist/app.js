@@ -1,7 +1,81 @@
-angular.module('controller.home', [
-    'ui.router'
-])
-    .controller('homeAbstractCtrl', ['$scope', '$state', 'homeService',
+// Make sure to include the `ui.router` module as a dependency
+var app = angular.module('app', [
+    'module.home',
+    'module.dashboard',
+    'module.user',
+    'service.home',
+    'ngEnter',
+    'ui.router',
+    'ngAnimate',
+    'mdMarkdownIt',
+    'angular-loading-bar',
+    'ui.bootstrap',
+    'ui.bootstrap.contextMenu'
+]);
+app.run(
+        ['$rootScope', '$state', '$stateParams',
+            function ($rootScope, $state, $stateParams) {
+
+                $rootScope.$state = $state;
+                $rootScope.$stateParams = $stateParams;
+                $rootScope.appTitle = 'Angularplate';
+
+            }
+        ]
+    )
+
+    .config(
+        ['$stateProvider', '$urlRouterProvider',
+            function ($stateProvider, $urlRouterProvider) {
+
+                $urlRouterProvider
+                    .when('/c?id', '/contacts/:id')
+                    .when('/user/:id', '/contacts/:id')
+                    .otherwise('/');
+                $stateProvider
+                    .state("loginAPI", {
+                        url: "/login/api",
+                        controller: ['$scope', '$rootScope','$state',
+                            function ($scope, $rootScope,$state) {
+
+                            }]
+                    })
+                    .state("login", {
+                        url: "/login",
+                        controller: ['$scope', '$rootScope','$state',
+                            function ($scope, $rootScope,$state) {
+
+                            }]
+                    })
+                    .state("logout", {
+                        url: "/logout",
+                        controller: ['$scope', '$state',
+                            function ($scope, $state) {
+                                $state.go('login');
+                            }]
+                    })
+                    .state('contact-us', {
+                        url: '/contact-us',
+                        // Showing off how you could return a promise from templateProvider
+                        templateProvider: ['$timeout',
+                            function ($timeout) {
+                                return $timeout(function () {
+                                    return '<p class="lead">UI-Router Resources</p><ul>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router/tree/gh-pages/sample">Source for this Sample</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router">GitHub Main Page</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router#quick-start">Quick Start</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router/wiki">In-Depth Guide</a></li>' +
+                                        '<li><a href="https://github.com/angular-ui/ui-router/wiki/Quick-Reference">API Reference</a></li>' +
+                                        '</ul>';
+                                }, 100);
+                            }]
+                    })
+            }
+        ])
+    .controller('navCtrl', 'navCtrl');
+
+
+app.controller('homeAbstractCtrl', ['$scope', '$state', 'homeService',
         function ($scope, $state, homeService) {
             $scope.say = homeService.Intro();
         }
@@ -11,6 +85,51 @@ angular.module('controller.home', [
             $scope.say = homeService.Intro();
         }
     ]);
+app.controller('navCtrl', ['$scope', '$rootScope', '$state', '$uibModal',
+        function ($scope, $rootScope, $state, $uibModal) {
+            $scope.appTitle = $rootScope.appTitle;
+            $scope.items = ['item1', 'item2', 'item3'];
+            $scope.open = function (size) {
+
+                var modalInstance = $uibModal.open({
+                    animation: true,
+                    ariaLabelledBy: 'modal-title',
+                    ariaDescribedBy: 'modal-body',
+                    templateUrl: 'views/modal/login.html',
+                    controller: 'ModalInstanceCtrl',
+                    controllerAs: '$ctrl',
+                    size: size,
+                    resolve: {
+                        appTitle: function () {
+                            return $scope.appTitle;
+                        }
+                    }
+                });
+
+                modalInstance.result.then(function (newAppTitle) {
+                    console.log(newAppTitle);
+                    $scope.appTitle = newAppTitle;
+                }, function () {
+                    $log.info('Modal dismissed at: ' + new Date());
+                });
+            };
+        }
+    ])
+    .controller('ModalInstanceCtrl', function ($uibModalInstance, appTitle) {
+        var $ctrl = this;
+        $ctrl.appTitle = appTitle;
+
+        $ctrl.ok = function () {
+            console.log($ctrl.appTitle);
+            $uibModalInstance.close($ctrl.appTitle);
+        };
+
+        $ctrl.cancel = function () {
+            $uibModalInstance.dismiss('cancel');
+        };
+    });
+
+
 /**
  * Created by Y50 on 19/12/2016.
  */
@@ -127,85 +246,8 @@ angular.module('service.home', [])
         var factory = {};
 
         factory.Intro = function () {
-            return 'Hello I\'m Mistral';
+            return 'Hello I\'m Angularplate';
         };
 
         return factory;
     }]);
-
-// Make sure to include the `ui.router` module as a dependency
-angular.module('app', [
-    'controller.home',
-    'module.home',
-    'module.dashboard',
-    'module.user',
-    'service.home',
-    'ngEnter',
-    'ui.router',
-    'ngAnimate',
-    'mdMarkdownIt',
-    'angular-loading-bar',
-    'ui.bootstrap',
-    'ui.bootstrap.contextMenu'
-])
-
-    .run(
-        ['$rootScope', '$state', '$stateParams',
-            function ($rootScope, $state, $stateParams) {
-
-                $rootScope.$state = $state;
-                $rootScope.$stateParams = $stateParams;
-
-            }
-        ]
-    )
-
-    .config(
-        ['$stateProvider', '$urlRouterProvider',
-            function ($stateProvider, $urlRouterProvider) {
-
-                $urlRouterProvider
-                    .when('/c?id', '/contacts/:id')
-                    .when('/user/:id', '/contacts/:id')
-                    .otherwise('/');
-                $stateProvider
-                    .state("loginAPI", {
-                        url: "/login/api",
-                        controller: ['$scope', '$rootScope','$state',
-                            function ($scope, $rootScope,$state) {
-
-                            }]
-                    })
-                    .state("login", {
-                        url: "/login",
-                        controller: ['$scope', '$rootScope','$state',
-                            function ($scope, $rootScope,$state) {
-
-                            }]
-                    })
-                    .state("logout", {
-                        url: "/logout",
-                        controller: ['$scope', '$state',
-                            function ($scope, $state) {
-                                $state.go('login');
-                            }]
-                    })
-                    .state('contact-us', {
-                        url: '/contact-us',
-                        // Showing off how you could return a promise from templateProvider
-                        templateProvider: ['$timeout',
-                            function ($timeout) {
-                                return $timeout(function () {
-                                    return '<p class="lead">UI-Router Resources</p><ul>' +
-                                        '<li><a href="https://github.com/angular-ui/ui-router/tree/gh-pages/sample">Source for this Sample</a></li>' +
-                                        '<li><a href="https://github.com/angular-ui/ui-router">GitHub Main Page</a></li>' +
-                                        '<li><a href="https://github.com/angular-ui/ui-router#quick-start">Quick Start</a></li>' +
-                                        '<li><a href="https://github.com/angular-ui/ui-router/wiki">In-Depth Guide</a></li>' +
-                                        '<li><a href="https://github.com/angular-ui/ui-router/wiki/Quick-Reference">API Reference</a></li>' +
-                                        '</ul>';
-                                }, 100);
-                            }]
-                    })
-            }
-        ]);
-

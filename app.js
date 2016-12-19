@@ -1,6 +1,5 @@
 // Make sure to include the `ui.router` module as a dependency
-angular.module('app', [
-    'controller.home',
+var app = angular.module('app', [
     'module.home',
     'module.dashboard',
     'module.user',
@@ -12,14 +11,14 @@ angular.module('app', [
     'angular-loading-bar',
     'ui.bootstrap',
     'ui.bootstrap.contextMenu'
-])
-
-    .run(
+]);
+app.run(
         ['$rootScope', '$state', '$stateParams',
             function ($rootScope, $state, $stateParams) {
 
                 $rootScope.$state = $state;
                 $rootScope.$stateParams = $stateParams;
+                $rootScope.appTitle = 'Angularplate';
 
             }
         ]
@@ -72,5 +71,6 @@ angular.module('app', [
                             }]
                     })
             }
-        ]);
+        ])
+    .controller('navCtrl', 'navCtrl');
 
