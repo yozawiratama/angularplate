@@ -3,6 +3,7 @@ var app = angular.module('app', [
     'module.home',
     'module.dashboard',
     'module.user',
+    'service.auth',
     'service.home',
     'ngEnter',
     'ui.router',
@@ -19,6 +20,16 @@ app.run(
                 $rootScope.$state = $state;
                 $rootScope.$stateParams = $stateParams;
                 $rootScope.appTitle = 'Angularplate';
+
+                $rootScope.$on("$stateChangeStart",
+                    function (event, toState, toParams, fromState, fromParams) {
+
+                    });
+
+                $rootScope.$on("stateChangeSuccess",
+                    function (event, toState, toParams, fromState, fromParams) {
+                        console.log(userInfo);
+                    });
 
             }
         ]

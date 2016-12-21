@@ -1,5 +1,5 @@
 angular.module('service.home', [])
-    .factory('homeService', ['$rootScope', '$http', function ($rootScope, $http) {
+    .service('homeSvc', ['$rootScope', '$http', function ($rootScope, $http) {
         var factory = {};
 
         factory.Intro = function () {
