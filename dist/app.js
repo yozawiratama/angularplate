@@ -1,4 +1,4 @@
-// Make sure to include the `ui.router` module as a dependency
+// Main module aof angularplate
 var app = angular.module('app', [
     'module.home',
     'module.dashboard',
@@ -16,10 +16,18 @@ var app = angular.module('app', [
 app.run(
         ['$rootScope', '$state', '$stateParams',
             function ($rootScope, $state, $stateParams) {
-
+                
+                
                 $rootScope.$state = $state;
                 $rootScope.$stateParams = $stateParams;
                 $rootScope.appTitle = 'Angularplate';
+                
+
+                $rootScope.$watch("userInfo", function (newval,oldval) {
+                    if(newval){
+                        
+                    }
+                });
 
                 $rootScope.$on("$stateChangeStart",
                     function (event, toState, toParams, fromState, fromParams) {
@@ -31,13 +39,22 @@ app.run(
                         console.log(userInfo);
                     });
 
+                $rootScope.$on('$stateChangeError',
+                    function(event, toState, toParams, fromState, fromParams, error){
+                        console.log(error);
+                        if (error.authenticated === false) {
+                            $state.go('home.index');
+                        }
+
+                    })
             }
         ]
     )
 
     .config(
         ['$stateProvider', '$urlRouterProvider',
-            function ($stateProvider, $urlRouterProvider) {
+            function ( $stateProvider, $urlRouterProvider) {
+
 
                 $urlRouterProvider
                     .when('/c?id', '/contacts/:id')
@@ -86,20 +103,38 @@ app.run(
     .controller('navCtrl', 'navCtrl');
 
 
-app.controller('homeAbstractCtrl', ['$scope', '$state', 'homeService',
-        function ($scope, $state, homeService) {
-            $scope.say = homeService.Intro();
+app.controller('homeAbstractCtrl', ['$scope', '$state', 'homeSvc',
+        function ($scope, $state, homeSvc) {
+            $scope.say = homeSvc.Intro();
         }
     ])
-    .controller('homeIndexCtrl', ['$scope', '$state', 'homeService',
-        function ($scope, $state, homeService) {
-            $scope.say = homeService.Intro();
+    .controller('homeIndexCtrl', ['$scope', '$state', 'homeSvc',
+        function ($scope, $state, homeSvc) {
+            $scope.say = homeSvc.Intro();
         }
     ]);
-app.controller('navCtrl', ['$scope', '$rootScope', '$state', '$uibModal',
-        function ($scope, $rootScope, $state, $uibModal) {
-            $scope.appTitle = $rootScope.appTitle;
+app.controller('navCtrl', ['$scope', '$rootScope', '$state', '$uibModal', 'authSvc',
+        function ($scope, $rootScope, $state, $uibModal, authSvc) {
+            $scope.mdlTitle = 'Login Modal';
             $scope.items = ['item1', 'item2', 'item3'];
+
+            $scope.isAuthenticated = null;
+            $scope.username = null;
+            $scope.userInfo = authSvc.getUserInfo();
+
+            if ($scope.userInfo) {
+                $scope.isAuthenticated = true;
+                $scope.username = $scope.userInfo.username;
+            } else {
+                $scope.isAuthenticated = false;
+            }
+
+            $scope.logout = function () {
+                authSvc.logout();
+                $scope.isAuthenticated = false;
+            };
+
+
             $scope.open = function (size) {
 
                 var modalInstance = $uibModal.open({
@@ -111,28 +146,47 @@ app.controller('navCtrl', ['$scope', '$rootScope', '$state', '$uibModal',
                     controllerAs: '$ctrl',
                     size: size,
                     resolve: {
-                        appTitle: function () {
-                            return $scope.appTitle;
+                        mdlTitle: function () {
+                            return $scope.mdlTitle;
                         }
                     }
                 });
 
-                modalInstance.result.then(function (newAppTitle) {
-                    console.log(newAppTitle);
-                    $scope.appTitle = newAppTitle;
+                modalInstance.result.then(function (res) {
+                    console.log(res);
+                    $scope.userInfo = authSvc.getUserInfo();
+
+                    if ($scope.userInfo) {
+                        $scope.isAuthenticated = true;
+                        $scope.username = $scope.userInfo.username;
+                    } else {
+                        $scope.isAuthenticated = false;
+                    }
+
                 }, function () {
                     $log.info('Modal dismissed at: ' + new Date());
                 });
             };
         }
     ])
-    .controller('ModalInstanceCtrl', function ($uibModalInstance, appTitle) {
+    .controller('ModalInstanceCtrl', function ($uibModalInstance, authSvc,mdlTitle) {
         var $ctrl = this;
-        $ctrl.appTitle = appTitle;
+        $ctrl.mdlTitle = mdlTitle;
+        $ctrl.fullname = 'Mr. Administrator';
+        $ctrl.username = 'admin';
+        $ctrl.password = 'admin';
 
         $ctrl.ok = function () {
-            console.log($ctrl.appTitle);
-            $uibModalInstance.close($ctrl.appTitle);
+            console.log($ctrl.mdlTitle);
+            var loginres = authSvc.login($ctrl.username, $ctrl.password);
+            console.log(loginres.then(function (res) {
+                console.log(res);
+                $uibModalInstance.close();
+            }), function (error) {
+                console.log(error);
+                alert('Login Fail');
+            });
+
         };
 
         $ctrl.cancel = function () {
@@ -157,9 +211,21 @@ angular.module('module.dashboard', [
                         abstract: true,
                         url: '/dashboard',
                         templateUrl: 'views/dashboard/layout.html',
+                        resolve : {
+                            auth: ['$q', 'authSvc',function($q, authSvc) {
+                                console.log('masuk');
+
+                                var userInfo = authSvc.getUserInfo();
+                                console.log(userInfo);
+                                if (userInfo) {
+                                    return $q.when(userInfo);
+                                } else {
+                                    return $q.reject({ authenticated : false });
+                                }
+                            }]
+                        },
                         controller: ['$scope', '$state',
                             function ($scope, $state) {
-
                             }
                         ]
                     })
@@ -192,19 +258,6 @@ angular.module('module.home', [
                         abstract: true,
                         url: '/',
                         templateUrl: 'views/user/layout.html',
-                        resolve : {
-                            auth: ['$q', 'authSvc',function($q, authSvc) {
-                                console.log('masuk');
-
-                                var userInfo = authSvc.getUserInfo();
-                                console.log(userInfo);
-                                if (userInfo) {
-                                    return $q.when(userInfo);
-                                } else {
-                                    return $q.reject({ authenticated: false });
-                                }
-                            }]
-                        },
                         controller: 'homeAbstractCtrl'
                     })
                     .state('home.index', {
@@ -276,39 +329,63 @@ angular.module('service.auth', [])
         factory.login = function(userName, password) {
             var deferred = $q.defer();
 
+            //for example
+            setTimeout(function() {
+                deferred.notify('About to greet ' + name + '.');
+
+                if (userName == 'admin' && password == 'admin') {
+                    userInfo = {
+                        accessToken: 'some-token',
+                        username: userName
+                    };
+                    $window.sessionStorage["userInfo"] = JSON.stringify(userInfo);
+                    deferred.resolve(userInfo);
+                } else {
+                    deferred.reject({authenticated : false});
+                }
+            }, 1000);
+
+
             //or you can use post for real condition
-            $http.get("/datas/login.json")
-                .then(function(result) {
-                    console.log('result');
-                userInfo = {
-                    accessToken: result.data.access_token,
-                    username: result.data.userName
-                };
-                $window.sessionStorage["userInfo"] = JSON.stringify(userInfo);
-                deferred.resolve(userInfo);
-            }, function(error) {
-                deferred.reject(error);
-            });
+            // $http.get("/datas/login.json")
+            //     .then(function(result) {
+            //         console.log('result');
+            //     userInfo = {
+            //         accessToken: result.data.access_token,
+            //         username: result.data.userName
+            //     };
+            //     $window.sessionStorage["userInfo"] = JSON.stringify(userInfo);
+            //     deferred.resolve(userInfo);
+            // }, function(error) {
+            //     deferred.reject(error);
+            // });
 
             return deferred.promise;
-        }
+        };
 
         factory.logout = function() {
             var deferred = $q.defer();
 
-            $http({
-                method: "POST",
-                url: logoutUrl,
-                headers: {
-                    "access_token": userInfo.accessToken
-                }
-            }).then(function(result) {
+            //for example
+            setTimeout(function() {
                 $window.sessionStorage["userInfo"] = null;
-                userInfo = null;
-                deferred.resolve(result);
-            }, function(error) {
-                deferred.reject(error);
-            });
+                deferred.resolve("logged out");
+
+            }, 1000);
+
+            // $http({
+            //     method: "POST",
+            //     url: logoutUrl,
+            //     headers: {
+            //         "access_token": userInfo.accessToken
+            //     }
+            // }).then(function(result) {
+            //     $window.sessionStorage["userInfo"] = null;
+            //     userInfo = null;
+            //     deferred.resolve(result);
+            // }, function(error) {
+            //     deferred.reject(error);
+            // });
 
             return deferred.promise;
         }

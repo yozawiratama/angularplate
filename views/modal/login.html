@@ -1,9 +1,15 @@
 <div class="modal-header">
-    <h3 class="modal-title" id="modal-title">I'm a {{$ctrl.appTitle}}!</h3>
+    <h3 class="modal-title" id="modal-title">{{$ctrl.mdlTitle}}!</h3>
 </div>
 <div class="modal-body" id="modal-body">
-    <p>test</p>
-    <input type="text" ng-model="$ctrl.appTitle" />
+    <div class="form-group">
+        <label class="control-label">Username</label>
+        <input type="text" class="form-control" ng-model="$ctrl.username" />
+    </div>
+    <div class="form-group">
+        <label class="control-label">Password</label>
+        <input type="password" class="form-control" ng-model="$ctrl.password" />
+    </div>
 </div>
 <div class="modal-footer">
     <button class="btn btn-primary" type="button" ng-click="$ctrl.ok()" >Submit Changes</button>

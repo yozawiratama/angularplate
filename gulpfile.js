@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var concat = require('gulp-concat');
 var watch = require('gulp-watch');
+var count = require('gulp-count');
 
 var scriptSources = [
     './app.js',
@@ -32,9 +33,13 @@ gulp.task('default', ['scripts', 'jsmodules', 'cssmodules'], function () {
     // place code for your default task here
 });
 
+gulp.task('publish', ['scripts-min', 'jsmodules-min', 'cssmodules-min'], function () {
+    // place code for your default task here
+});
+
 
 gulp.task('scripts', function () {
-    return watch(scriptSources, function () {
+    watch(scriptSources, function () {
         gulp.src(scriptSources)
             .pipe(concat('app.js'))
             .pipe(gulp.dest('./dist/'));
@@ -43,8 +48,7 @@ gulp.task('scripts', function () {
 });
 
 gulp.task('jsmodules', function () {
-    return watch(nodemoduleSources, function () {
-
+    watch(nodemoduleSources, function () {
             gulp.src(nodemoduleSources)
                 .pipe(concat('jsmodules.js'))
                 .pipe(gulp.dest('./dist/'));
@@ -52,9 +56,39 @@ gulp.task('jsmodules', function () {
 });
 
 gulp.task('cssmodules', function () {
-    return watch(cssSources, function () {
+    watch(cssSources, function () {
         gulp.src(cssSources)
             .pipe(concat('cssmodules.css'))
             .pipe(gulp.dest('./dist/'));
     });
+});
+
+
+gulp.task('scripts-min', function () {
+    console.log('scripts');
+
+        gulp.src(scriptSources)
+            .pipe(count('## js-files selected'))
+            .pipe(concat('app.js'))
+            .pipe(gulp.dest('./dist/'));
+
+
+});
+
+gulp.task('jsmodules-min', function () {
+
+        gulp.src(nodemoduleSources)
+            .pipe(count('## node-files selected'))
+            .pipe(concat('jsmodules.js'))
+            .pipe(gulp.dest('./dist/'));
+
+});
+
+gulp.task('cssmodules-min', function () {
+
+        gulp.src(cssSources)
+            .pipe(count('## css-files selected'))
+            .pipe(concat('cssmodules.css'))
+            .pipe(gulp.dest('./dist/'));
+
 });

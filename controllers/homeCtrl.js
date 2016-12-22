@@ -1,10 +1,10 @@
-app.controller('homeAbstractCtrl', ['$scope', '$state', 'homeService',
-        function ($scope, $state, homeService) {
-            $scope.say = homeService.Intro();
+app.controller('homeAbstractCtrl', ['$scope', '$state', 'homeSvc',
+        function ($scope, $state, homeSvc) {
+            $scope.say = homeSvc.Intro();
         }
     ])
-    .controller('homeIndexCtrl', ['$scope', '$state', 'homeService',
-        function ($scope, $state, homeService) {
-            $scope.say = homeService.Intro();
+    .controller('homeIndexCtrl', ['$scope', '$state', 'homeSvc',
+        function ($scope, $state, homeSvc) {
+            $scope.say = homeSvc.Intro();
         }
     ]);

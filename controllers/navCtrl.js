@@ -1,7 +1,25 @@
-app.controller('navCtrl', ['$scope', '$rootScope', '$state', '$uibModal',
-        function ($scope, $rootScope, $state, $uibModal) {
-            $scope.appTitle = $rootScope.appTitle;
+app.controller('navCtrl', ['$scope', '$rootScope', '$state', '$uibModal', 'authSvc',
+        function ($scope, $rootScope, $state, $uibModal, authSvc) {
+            $scope.mdlTitle = 'Login Modal';
             $scope.items = ['item1', 'item2', 'item3'];
+
+            $scope.isAuthenticated = null;
+            $scope.username = null;
+            $scope.userInfo = authSvc.getUserInfo();
+
+            if ($scope.userInfo) {
+                $scope.isAuthenticated = true;
+                $scope.username = $scope.userInfo.username;
+            } else {
+                $scope.isAuthenticated = false;
+            }
+
+            $scope.logout = function () {
+                authSvc.logout();
+                $scope.isAuthenticated = false;
+            };
+
+
             $scope.open = function (size) {
 
                 var modalInstance = $uibModal.open({
@@ -13,28 +31,47 @@ app.controller('navCtrl', ['$scope', '$rootScope', '$state', '$uibModal',
                     controllerAs: '$ctrl',
                     size: size,
                     resolve: {
-                        appTitle: function () {
-                            return $scope.appTitle;
+                        mdlTitle: function () {
+                            return $scope.mdlTitle;
                         }
                     }
                 });
 
-                modalInstance.result.then(function (newAppTitle) {
-                    console.log(newAppTitle);
-                    $scope.appTitle = newAppTitle;
+                modalInstance.result.then(function (res) {
+                    console.log(res);
+                    $scope.userInfo = authSvc.getUserInfo();
+
+                    if ($scope.userInfo) {
+                        $scope.isAuthenticated = true;
+                        $scope.username = $scope.userInfo.username;
+                    } else {
+                        $scope.isAuthenticated = false;
+                    }
+
                 }, function () {
                     $log.info('Modal dismissed at: ' + new Date());
                 });
             };
         }
     ])
-    .controller('ModalInstanceCtrl', function ($uibModalInstance, appTitle) {
+    .controller('ModalInstanceCtrl', function ($uibModalInstance, authSvc,mdlTitle) {
         var $ctrl = this;
-        $ctrl.appTitle = appTitle;
+        $ctrl.mdlTitle = mdlTitle;
+        $ctrl.fullname = 'Mr. Administrator';
+        $ctrl.username = 'admin';
+        $ctrl.password = 'admin';
 
         $ctrl.ok = function () {
-            console.log($ctrl.appTitle);
-            $uibModalInstance.close($ctrl.appTitle);
+            console.log($ctrl.mdlTitle);
+            var loginres = authSvc.login($ctrl.username, $ctrl.password);
+            console.log(loginres.then(function (res) {
+                console.log(res);
+                $uibModalInstance.close();
+            }), function (error) {
+                console.log(error);
+                alert('Login Fail');
+            });
+
         };
 
         $ctrl.cancel = function () {

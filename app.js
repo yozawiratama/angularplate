@@ -1,4 +1,4 @@
-// Make sure to include the `ui.router` module as a dependency
+// Main module aof angularplate
 var app = angular.module('app', [
     'module.home',
     'module.dashboard',
@@ -16,10 +16,18 @@ var app = angular.module('app', [
 app.run(
         ['$rootScope', '$state', '$stateParams',
             function ($rootScope, $state, $stateParams) {
-
+                
+                
                 $rootScope.$state = $state;
                 $rootScope.$stateParams = $stateParams;
                 $rootScope.appTitle = 'Angularplate';
+                
+
+                $rootScope.$watch("userInfo", function (newval,oldval) {
+                    if(newval){
+                        
+                    }
+                });
 
                 $rootScope.$on("$stateChangeStart",
                     function (event, toState, toParams, fromState, fromParams) {
@@ -31,13 +39,22 @@ app.run(
                         console.log(userInfo);
                     });
 
+                $rootScope.$on('$stateChangeError',
+                    function(event, toState, toParams, fromState, fromParams, error){
+                        console.log(error);
+                        if (error.authenticated === false) {
+                            $state.go('home.index');
+                        }
+
+                    })
             }
         ]
     )
 
     .config(
         ['$stateProvider', '$urlRouterProvider',
-            function ($stateProvider, $urlRouterProvider) {
+            function ( $stateProvider, $urlRouterProvider) {
+
 
                 $urlRouterProvider
                     .when('/c?id', '/contacts/:id')
